@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  
+        http://www.springframework.org/schema/beans/spring-beans.xsd  
+        http://code.alibabatech.com/schema/dubbo  
+        http://code.alibabatech.com/schema/dubbo/dubbo.xsd  
+        ">
+
+    <!-- 服务的实现类  -->
+    <bean id="someService" class="service.SomeServiceImpl"/>
+
+   <!-- 提供方应用名称信息，这个相当于起一个名字，我们dubbo管理页面比较清晰是哪个应用暴露出来的 -->
+   <dubbo:application name="dubbo_provider"></dubbo:application>
+
+   <!-- 使用zookeeper注册中心暴露服务地址 
+   属性：
+     protocol： zookeeper表示注册中心用zk。
+   address：注册中心的地址，如果是集群，那么用逗号隔开
+   client：于注册中心的连接，用何种方式。
+   check：当注册中心不存在时，是否报错。
+   subscribe：如果为false，表示不订阅 （注册中心的内容），只注册
+             （因为是 服务提供者，默认是不订阅的（消费者才订阅））
+   timeout：延时（与注册中心的通信容许的最大时间 ，单位毫秒）
+
+
+   -->
+    <dubbo:registry id="registry1" protocol="zookeeper" address="127.0.0.1:2181,127.0.0.1:2183,127.0.0.1:2183" client="zkclient"/>
+    <!-- 用dubbo协议在20880端口暴露服务 -->
+    <dubbo:protocol name="dubbo" port="20880" />
+
+
+  <!-- 要暴露的服务接口 
+
+  interface：完整的接口包名+类名
+  registry:指明用哪个注册中心，比如对应上面的registry1
+         ps:可以有多个注册中心
+
+  cluster="failsafe"  默认是failover 意思是失败后，尝试其他服务
+  -->  
+  <dubbo:service interface="service.ISomeService" ref="someService"   cluster="failover" loadbalance="roundrobin"/>     
+
+</beans>
